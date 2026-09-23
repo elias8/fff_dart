@@ -1,8 +1,5 @@
-/// Support for doing something awesome.
+/// Dart bindings for FFF.
 ///
-/// More dartdocs go here.
+/// The safe public API is under development. Raw generated bindings remain in
+/// `src/ffi` until ownership and lifecycle rules have been mapped to Dart.
 library;
-
-export 'src/fff_base.dart';
-
-// TODO: Export any libraries intended for clients of this package.
