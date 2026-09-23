@@ -1,5 +1,5 @@
-/// Dart bindings for FFF.
-///
-/// The safe public API is under development. Raw generated bindings remain in
-/// `src/ffi` until ownership and lifecycle rules have been mapped to Dart.
+/// Dart bindings for the FFF file finder.
 library;
+
+export 'src/impl/api.dart'
+    show FffException, FffOptions, FffScanProgress, FileFinder;
