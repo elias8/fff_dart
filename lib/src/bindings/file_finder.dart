@@ -56,9 +56,9 @@ int createInstanceWith(
 
     return decodeFffResult(
       () => fff_create_instance_with(options),
-      operation: 'FileFinder.open',
-      onSuccess: (result) {
-        final handle = result.handle;
+      operationName: 'FileFinder.open',
+      decodeSuccess: (envelope) {
+        final handle = envelope.handle;
         if (handle == nullptr) {
           throw StateError('FFF created an index without a handle');
         }
@@ -75,13 +75,14 @@ void destroy(int handle) {
 String getBasePath(int handle) {
   return decodeFffResult(
     () => fff_get_base_path(Pointer<Void>.fromAddress(handle)),
-    operation: 'FileFinder.basePath',
-    onSuccess: (result) {
-      final path = result.handle.cast<Char>();
+    operationName: 'FileFinder.basePath',
+    decodeSuccess: (envelope) {
+      final path = envelope.handle.cast<Char>();
+      if (path == nullptr) {
+        throw StateError('FFF returned a null base path');
+      }
+
       try {
-        if (path == nullptr) {
-          throw StateError('FFF returned a null base path');
-        }
         return path.toDartString();
       } finally {
         fff_free_string(path);
@@ -99,13 +100,13 @@ String getBasePath(int handle) {
 getScanProgress(int handle) {
   return decodeFffResult(
     () => fff_get_scan_progress(Pointer<Void>.fromAddress(handle)),
-    operation: 'FileFinder.scanProgress',
-    onSuccess: (result) {
-      final progress = result.handle.cast<FffScanProgress>();
+    operationName: 'FileFinder.scanProgress',
+    decodeSuccess: (envelope) {
+      final progress = envelope.handle.cast<FffScanProgress>();
+      if (progress == nullptr) {
+        throw StateError('FFF returned null scan progress');
+      }
       try {
-        if (progress == nullptr) {
-          throw StateError('FFF returned null scan progress');
-        }
         final value = progress.ref;
         return (
           scannedFilesCount: value.scanned_files_count,
@@ -127,8 +128,8 @@ bool isScanning(int handle) {
 void scanFiles(int handle) {
   decodeFffResult<void>(
     () => fff_scan_files(Pointer<Void>.fromAddress(handle)),
-    operation: 'FileFinder.rescan',
-    onSuccess: ignoreResult,
+    operationName: 'FileFinder.rescan',
+    decodeSuccess: ignoreResult,
   );
 }
 
@@ -147,8 +148,8 @@ bool waitForScan(int handle, int timeoutMilliseconds) {
       Pointer<Void>.fromAddress(handle),
       timeoutMilliseconds,
     ),
-    operation: 'FileFinder.waitForScan',
-    onSuccess: _decodeWaitResult,
+    operationName: 'FileFinder.waitForScan',
+    decodeSuccess: _decodeWaitResult,
   );
 }
 
@@ -158,7 +159,7 @@ bool waitForWatcher(int handle, int timeoutMilliseconds) {
       Pointer<Void>.fromAddress(handle),
       timeoutMilliseconds,
     ),
-    operation: 'FileFinder.waitForWatcher',
-    onSuccess: _decodeWaitResult,
+    operationName: 'FileFinder.waitForWatcher',
+    decodeSuccess: _decodeWaitResult,
   );
 }

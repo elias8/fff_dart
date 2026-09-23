@@ -1,6 +1,6 @@
 # fff_dart
 
-A single pure Dart package for the [FFF](https://github.com/dmtrKovalenko/fff) C ABI. The first API slice covers index creation, scan state, rescanning, waits, and disposal. Search APIs are still in development.
+A single pure Dart package for the [FFF](https://github.com/dmtrKovalenko/fff) C ABI. The first slices cover index creation, scan state, fuzzy file search, rescanning, waits, and disposal.
 
 ## Open an index
 
@@ -16,6 +16,19 @@ void main() {
     if (index.waitForScan(const Duration(seconds: 30))) {
       final progress = index.scanProgress;
       print('Scanned ${progress.scannedFilesCount} files');
+
+      final results = index.searchFile(
+        'main.dart',
+        options: const SearchOptions(pageSize: 10),
+      );
+      for (final item in results.items) {
+        print(item.relativePath);
+      }
+
+      final directories = index.searchDirectories('lib');
+      for (final directory in directories.items) {
+        print(directory.relativePath);
+      }
     }
     index.rescan();
   } finally {

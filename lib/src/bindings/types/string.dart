@@ -5,6 +5,8 @@ import 'package:ffi/ffi.dart';
 /// Copies native UTF-8 text into Dart; the caller retains pointer ownership.
 extension DartString on Pointer<Char> {
   String toDartString() => cast<Utf8>().toDartString();
+
+  String? toDartStringOrNull() => this == nullptr ? null : toDartString();
 }
 
 /// Converts Dart strings into UTF-8 pointers owned by [arena].

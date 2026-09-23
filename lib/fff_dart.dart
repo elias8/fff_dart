@@ -2,4 +2,19 @@
 library;
 
 export 'src/impl/api.dart'
-    show FffException, FffOptions, FffScanProgress, FileFinder;
+    show
+        DirectoryItem,
+        DirectorySearchOptions,
+        DirectorySearchResult,
+        FffException,
+        FffOptions,
+        FffScanProgress,
+        FileFinder,
+        FileItem,
+        SearchLineLocation,
+        SearchLocation,
+        SearchOptions,
+        SearchPositionLocation,
+        SearchRangeLocation,
+        SearchResult,
+        SearchScore;

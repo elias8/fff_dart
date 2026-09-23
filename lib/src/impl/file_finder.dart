@@ -171,6 +171,68 @@ final class FileFinder._(var int _handle) implements Finalizable {
     bindings.destroy(handle);
   }
 
+  /// Searches indexed files using FFF's fuzzy query parser and ranking.
+  ///
+  /// Wait for the initial scan with [waitForScan] when results must include
+  /// every file. This synchronous call may block while FFF searches. [options]
+  /// controls threading, current-file scoring, combo boosts, and the result
+  /// range. [SearchOptions.offset] is the number of results to skip, and a
+  /// zero [SearchOptions.pageSize] uses FFF's default limit of 100. FFF also
+  /// chooses defaults when [SearchOptions.maxThreads],
+  /// [SearchOptions.comboBoostMultiplier], or [SearchOptions.minComboCount]
+  /// are zero.
+  ///
+  /// The returned items, scores, and optional query location are detached
+  /// values and remain usable after this finder is disposed. The item and
+  /// score lists are unmodifiable. A NUL-containing query or current file
+  /// throws [ArgumentError]. Options outside the native integer ranges throw
+  /// [RangeError]. A native failure throws [FffException].
+  SearchResult searchFile(
+    String query, {
+    SearchOptions options = const SearchOptions(),
+  }) {
+    return search_bindings.search(
+      _liveHandle,
+      query,
+      currentFile: options.currentFile,
+      maxThreads: options.maxThreads,
+      offset: options.offset,
+      pageSize: options.pageSize,
+      comboBoostMultiplier: options.comboBoostMultiplier,
+      minComboCount: options.minComboCount,
+    );
+  }
+
+  /// Searches indexed directories by fuzzy path and directory-name matching.
+  ///
+  /// Call [waitForScan] first when results should include every indexed
+  /// directory; the initial scan runs asynchronously. This synchronous
+  /// operation may block while FFF searches. An empty query
+  /// returns directories ranked by access frecency. A location suffix such as
+  /// `:12` is removed from the search text; directory results do not include
+  /// location data. [options] controls worker threads, current-file scoring,
+  /// and the result range. [DirectorySearchOptions.offset] counts matching
+  /// directories to skip. A zero [DirectorySearchOptions.pageSize] uses FFF's
+  /// default limit of 100; zero [DirectorySearchOptions.maxThreads] lets FFF
+  /// choose its parallelism. Returned items and scores are detached,
+  /// unmodifiable values that remain usable after this finder is disposed.
+  /// A NUL-containing query or current file throws [ArgumentError]. Options
+  /// outside the native integer ranges throw [RangeError]. Native failures
+  /// throw [FffException].
+  DirectorySearchResult searchDirectories(
+    String query, {
+    DirectorySearchOptions options = const DirectorySearchOptions(),
+  }) {
+    return directory_search_bindings.searchDirectories(
+      _liveHandle,
+      query,
+      currentFile: options.currentFile,
+      maxThreads: options.maxThreads,
+      offset: options.offset,
+      pageSize: options.pageSize,
+    );
+  }
+
   /// Schedules a full filesystem rescan and returns before it completes.
   ///
   /// FFF can queue this request behind ongoing work. [waitForScan] observes
