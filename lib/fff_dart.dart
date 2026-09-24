@@ -29,4 +29,6 @@ export 'src/impl/api.dart'
         SearchPositionLocation,
         SearchRangeLocation,
         SearchResult,
-        SearchScore;
+        SearchScore,
+        WatchEvent,
+        WatchEventKind;

@@ -72,3 +72,29 @@ void main() {
 `FileFinder.open` starts native background work. Calls are synchronous and waits or disposal may block the calling isolate. Dispose the index when finished; later operations throw `StateError`. Native failures throw `FffException`.
 
 Content grep supports literal, regex, and fuzzy modes. `multiGrep` searches for any of several literal patterns and reuses the same detached result types. Its pagination cursor advances through candidate files and should be reused with the same query and options. Regex errors fall back to literal matching and are returned in `GrepResult.regexFallbackError`. Match columns and highlight ranges use UTF-8 byte offsets. See the API docs for limits, context, and time-budget behavior.
+
+## Watch filesystem changes
+
+Wait until filesystem monitoring is ready before subscribing. Each stream emits
+immutable event lists with absolute paths; rename events include both the old
+and new paths.
+
+```dart
+final finder = FileFinder.open('/path/to/project');
+try {
+  if (finder.waitForWatcher(const Duration(seconds: 30))) {
+    final changes = finder.watch(ignore: ['.git']);
+    final listener = changes.listen((events) {
+      for (final event in events) {
+        print('${event.kind}: ${event.path}');
+      }
+    });
+
+    // Cancelling the final listener pauses monitoring; listening again resumes
+    // it.
+    await listener.cancel();
+  }
+} finally {
+  finder.dispose();
+}
+```

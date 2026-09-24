@@ -3,6 +3,7 @@
 /// Feature parts share private native handles without exposing them publicly.
 library;
 
+import 'dart:async';
 import 'dart:ffi' show Finalizable;
 import 'dart:io' show FileSystemEntity;
 
@@ -27,6 +28,8 @@ import '../bindings/types/search.dart'
         MixedSearchResult,
         SearchOptions,
         SearchResult;
+import '../bindings/types/watch.dart' show WatchEvent;
+import '../bindings/watch.dart' as watch_bindings;
 
 export '../bindings/types/grep.dart'
     show
@@ -62,5 +65,7 @@ export '../bindings/types/search_location.dart'
         SearchLocation,
         SearchPositionLocation,
         SearchRangeLocation;
+export '../bindings/types/watch.dart' show WatchEvent, WatchEventKind;
 
 part 'file_finder.dart';
+part 'watch_stream.dart';

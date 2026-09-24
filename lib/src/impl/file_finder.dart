@@ -1,5 +1,14 @@
 part of 'api.dart';
 
+void _destroyFileFinder(int handle) {
+  _disposeWatchStreams(handle);
+  try {
+    bindings.destroy(handle);
+  } finally {
+    watch_bindings.disposeWatchHandle(handle);
+  }
+}
+
 /// Options used when opening a [FileFinder].
 ///
 /// Paths are passed as UTF-8. Null or empty optional paths disable their
@@ -87,7 +96,7 @@ final class const FffScanProgress({
 /// }
 /// ```
 final class FileFinder._(var int _handle) implements Finalizable {
-  static final _finalizer = Finalizer<int>(bindings.destroy);
+  static final _finalizer = Finalizer<int>(_destroyFileFinder);
 
   this {
     _finalizer.attach(this, _handle, detach: this);
@@ -161,14 +170,15 @@ final class FileFinder._(var int _handle) implements Finalizable {
 
   /// Releases native resources. Repeated calls have no effect.
   ///
-  /// Shutdown can block while a native watcher finishes. A finalizer is a
-  /// fallback when [dispose] is omitted; call this method for timely release.
+  /// Active [watch] streams are closed during disposal. Shutdown can block
+  /// while native work finishes. A finalizer is a fallback when [dispose] is
+  /// omitted; call this method for timely release.
   void dispose() {
     final handle = _handle;
     if (handle == 0) return;
     _handle = 0;
     _finalizer.detach(this);
-    bindings.destroy(handle);
+    _destroyFileFinder(handle);
   }
 
   /// Searches indexed files using FFF's fuzzy query parser and ranking.
@@ -487,6 +497,51 @@ final class FileFinder._(var int _handle) implements Finalizable {
   /// and [FffException] for a native failure.
   bool waitForWatcher(Duration timeout) {
     return bindings.waitForWatcher(_liveHandle, _timeoutMilliseconds(timeout));
+  }
+
+  /// Watches filesystem changes and returns their events as a stream.
+  ///
+  /// Call [waitForWatcher] and wait for it to return true before subscribing.
+  /// [pattern] filters events by a wildcard, absolute path, or relative path;
+  /// null watches the indexed tree. [ignore] entries without wildcards exclude
+  /// path prefixes, while entries with wildcards are base-relative patterns.
+  /// Empty ignore entries are skipped. The watcher must have been enabled in
+  /// [FffOptions]; otherwise the stream emits [FffException]. NUL-containing
+  /// patterns or ignore entries throw [ArgumentError].
+  ///
+  /// The returned broadcast stream emits immutable lists of events with copied
+  /// absolute paths and enum kinds. Events are delivered while the stream has
+  /// listeners; cancelling the last listener stops monitoring, and a later
+  /// listener resumes it. Renames put
+  /// the destination in [WatchEvent.path] and the previous path in
+  /// [WatchEvent.fromPath]. A rescan event means some filesystem events were
+  /// lost; inspect or rescan the paths in that list. Cancel active stream
+  /// subscriptions before calling [dispose]. Dropping a subscription without
+  /// cancelling it leaves its watcher running and keeps this finder alive, so
+  /// the finalizer cannot release it. A stream first listened to after
+  /// disposal completes without starting monitoring. Monitoring starts when
+  /// the first listener attaches; startup errors are delivered through the
+  /// stream. The returned stream retains this finder until it is released.
+  Stream<List<WatchEvent>> watch({
+    String? pattern,
+    Iterable<String> ignore = const [],
+  }) {
+    if (_handle == 0) throw StateError('FileFinder has been disposed');
+    if (pattern?.contains('\u0000') ?? false) {
+      throw ArgumentError.value(pattern, 'pattern', 'Must not contain a NUL');
+    }
+    final ignoredPaths = ignore.toList(growable: false);
+    for (var index = 0; index < ignoredPaths.length; index++) {
+      if (ignoredPaths[index].contains('\u0000')) {
+        throw ArgumentError.value(
+          ignoredPaths[index],
+          'ignore[$index]',
+          'Must not contain a NUL',
+        );
+      }
+    }
+
+    return _WatchStream(this, pattern, ignoredPaths).stream;
   }
 
   int _timeoutMilliseconds(Duration timeout) {
