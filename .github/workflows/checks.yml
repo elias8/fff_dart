@@ -1,0 +1,79 @@
+name: checks
+
+on:
+  workflow_call:
+
+env:
+  ZIG_VERSION: "0.16.0"
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d # v1.8.1
+        with:
+          sdk: stable
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
+      - name: Check the FFF tag
+        run: |
+          git ls-remote --exit-code --tags https://github.com/dmtrKovalenko/fff.git "refs/tags/$(cat fff.version)"
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: dart analyze
+      - name: Check generated bindings
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libclang-dev
+          dart tool/ffigen.dart
+          git diff --exit-code -- lib/src/ffi/fff.g.dart
+
+  test:
+    name: test-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d # v1.8.1
+        with:
+          sdk: stable
+      - uses: mlugg/setup-zig@d1434d08867e3ee9daa34448df10607b98908d29 # v2.2.1
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          ZIG_CACHE_DIR="$(pwd -W)/.zig-cache"
+          echo "ZIG_GLOBAL_CACHE_DIR=$ZIG_CACHE_DIR" >> "$GITHUB_ENV"
+          echo "ZIG_LOCAL_CACHE_DIR=$ZIG_CACHE_DIR" >> "$GITHUB_ENV"
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.yaml') }}
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          # Cache the source checkout with Cargo's target directory so the hook
+          # does not discard the restored build when it checks out FFF.
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            .dart_tool/hooks_runner/shared/fff_dart/build/fff-v0.11.0
+            .zig-cache
+          key: native-${{ runner.os }}-${{ hashFiles('fff.version', 'lib/src/hook/library_provider.dart') }}
+          restore-keys: native-${{ runner.os }}-
+          save-always: true
+      - run: dart pub get
+      - run: dart test
