@@ -247,6 +247,46 @@ final class FileFinder._(var int _handle) implements Finalizable {
   GrepResult grep(String query, {GrepOptions options = const GrepOptions()}) =>
       grep_bindings.liveGrepEx(_liveHandle, query, options: options);
 
+  /// Searches for lines containing any of [patterns] using literal matching.
+  ///
+  /// Wait for [waitForScan] before searching when results should include every
+  /// indexed file. This synchronous operation may block while FFF searches.
+  /// A line matching multiple patterns is returned once with non-overlapping
+  /// highlight ranges; the result does not identify which pattern produced a
+  /// range. Pattern order is not significant. Empty patterns and patterns
+  /// containing NUL or newline characters throw [ArgumentError].
+  ///
+  /// [MultiGrepOptions.constraints] is parsed separately from patterns using
+  /// FFF's fixed AI grep constraint parser, regardless of [FffOptions.aiMode].
+  /// Constraints are split on whitespace; unrecognized tokens are ignored.
+  /// A NUL character in [MultiGrepOptions.constraints] throws
+  /// [ArgumentError].
+  /// A constraint miss returns no matches and does not retry without the
+  /// constraint. [MultiGrepOptions.fileOffset] resumes within the filtered
+  /// candidate-file order. Continue by passing [GrepResult.nextFileOffset] as
+  /// [MultiGrepOptions.fileOffset] with the same patterns and other options.
+  /// A zero [MultiGrepOptions.pageLimit] uses FFF's default of 50 and may be
+  /// exceeded to finish the current file.
+  ///
+  /// When [MultiGrepOptions.smartCase] is true, FFF checks all patterns for
+  /// uppercase characters using Unicode-aware detection. If any pattern has
+  /// uppercase characters, the entire pattern set is case-sensitive; otherwise
+  /// FFF applies ASCII-only case folding. False is always case-sensitive.
+  /// Time budgets are best effort, checked periodically, and can be exceeded.
+  /// With [MultiGrepOptions.enforceTimeBudget] false, FFF delays the budget
+  /// until more than one match has accumulated, so it may not bound a
+  /// zero- or one-match search.
+  ///
+  /// Result fields are detached and immutable. Fuzzy scores and regex fallback
+  /// errors are always null for this literal search. Match byte coordinates
+  /// share the behavior described for [grep], including lossy UTF-8 display.
+  /// Values outside native integer ranges throw [RangeError]. Native failures
+  /// throw [FffException].
+  GrepResult multiGrep(
+    Iterable<String> patterns, {
+    MultiGrepOptions options = const MultiGrepOptions(),
+  }) => grep_bindings.multiGrepEx(_liveHandle, patterns, options: options);
+
   /// Filters indexed files with one glob pattern, without parsing a query.
   ///
   /// The pattern is matched against each file's root-relative path. FFF's

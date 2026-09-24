@@ -12,7 +12,8 @@ import '../bindings/grep.dart' as grep_bindings;
 import '../bindings/search.dart' as search_bindings;
 import '../bindings/search_directories.dart' as directory_search_bindings;
 import '../bindings/search_mixed.dart' as mixed_search_bindings;
-import '../bindings/types/grep.dart' show GrepMatch, GrepOptions, GrepResult;
+import '../bindings/types/grep.dart'
+    show GrepMatch, GrepOptions, GrepResult, MultiGrepOptions;
 import '../bindings/types/result.dart' show FffException;
 import '../bindings/types/search.dart'
     show
@@ -26,7 +27,13 @@ import '../bindings/types/search.dart'
         SearchResult;
 
 export '../bindings/types/grep.dart'
-    show GrepMatch, GrepMatchRange, GrepMode, GrepOptions, GrepResult;
+    show
+        GrepMatch,
+        GrepMatchRange,
+        GrepMode,
+        GrepOptions,
+        GrepResult,
+        MultiGrepOptions;
 export '../bindings/types/result.dart' show FffException;
 export '../bindings/types/search.dart'
     show

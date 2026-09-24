@@ -17,6 +17,7 @@ export 'src/impl/api.dart'
         GrepMode,
         GrepOptions,
         GrepResult,
+        MultiGrepOptions,
         SearchLineLocation,
         SearchLocation,
         SearchOptions,

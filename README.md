@@ -43,6 +43,11 @@ void main() {
         print('${match.relativePath}:${match.lineNumber}: ${match.lineContent}');
       }
 
+      final anyMatches = index.multiGrep(['FileFinder', 'GrepResult']);
+      for (final match in anyMatches.matches) {
+        print('${match.relativePath}:${match.lineNumber}: ${match.lineContent}');
+      }
+
       final mixed = index.searchMixed('components');
       for (final item in mixed.items) {
         switch (item) {
@@ -62,4 +67,4 @@ void main() {
 
 `FileFinder.open` starts native background work. Calls are synchronous and waits or disposal may block the calling isolate. Dispose the index when finished; later operations throw `StateError`. Native failures throw `FffException`.
 
-Content grep supports literal, regex, and fuzzy modes. Its pagination cursor advances through candidate files and should be reused with the same query and options. Regex errors fall back to literal matching and are returned in `GrepResult.regexFallbackError`. Match columns and highlight ranges use UTF-8 byte offsets. See the API docs for limits, context, and time-budget behavior.
+Content grep supports literal, regex, and fuzzy modes. `multiGrep` searches for any of several literal patterns and reuses the same detached result types. Its pagination cursor advances through candidate files and should be reused with the same query and options. Regex errors fall back to literal matching and are returned in `GrepResult.regexFallbackError`. Match columns and highlight ranges use UTF-8 byte offsets. See the API docs for limits, context, and time-budget behavior.

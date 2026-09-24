@@ -129,6 +129,49 @@ final class const GrepOptions({
   final bool classifyDefinitions = false,
 });
 
+/// Options for [FileFinder.multiGrep].
+///
+/// Multi-pattern matching is literal OR search. [constraints] is parsed
+/// separately from the patterns using FFF's grep constraint syntax.
+final class const MultiGrepOptions({
+  /// Optional whitespace-separated file constraints, such as `*.dart /src/`.
+  /// Unrecognized tokens are ignored by FFF. NUL characters are rejected.
+  final String? constraints,
+
+  /// Maximum searchable file size in bytes; zero uses 10 MiB.
+  final int maxFileSizeBytes = 0,
+
+  /// Maximum matching lines returned per file; zero is unlimited.
+  final int maxMatchesPerFile = 0,
+
+  /// If true, matching is case-insensitive only when every pattern has no
+  /// uppercase characters. Uppercase detection is Unicode-aware; folding is
+  /// ASCII-only. False makes the pattern set case-sensitive.
+  final bool smartCase = true,
+
+  /// Candidate-file offset for pagination; zero starts at the first candidate.
+  final int fileOffset = 0,
+
+  /// Soft page limit; zero uses 50. FFF may finish the current file past it.
+  final int pageLimit = 0,
+
+  /// Best-effort time budget in milliseconds; zero is unlimited.
+  final int timeBudgetMs = 0,
+
+  /// Apply the time budget from the start. When false, FFF delays it until
+  /// more than one match has accumulated.
+  final bool enforceTimeBudget = false,
+
+  /// Number of lines of context to include before each match.
+  final int beforeContext = 0,
+
+  /// Number of lines of context to include after each match.
+  final int afterContext = 0,
+
+  /// Ask FFF to heuristically mark code definitions.
+  final bool classifyDefinitions = false,
+});
+
 /// Detached results from one content-search page.
 final class GrepResult(
   List<GrepMatch> matches, {

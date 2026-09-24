@@ -75,6 +75,84 @@ GrepResult liveGrepEx(
   });
 }
 
+GrepResult multiGrepEx(
+  int handle,
+  Iterable<String> patterns, {
+  required MultiGrepOptions options,
+}) {
+  final patternList = _validatedPatterns(patterns);
+  _checkUint64(options.maxFileSizeBytes, 'maxFileSizeBytes');
+  _checkUint32(options.maxMatchesPerFile, 'maxMatchesPerFile');
+  _checkUint32(options.fileOffset, 'fileOffset');
+  _checkUint32(options.pageLimit, 'pageLimit');
+  _checkUint64(options.timeBudgetMs, 'timeBudgetMs');
+  _checkUint32(options.beforeContext, 'beforeContext');
+  _checkUint32(options.afterContext, 'afterContext');
+
+  return using((arena) {
+    return decodeFffResult(
+      () => fff_multi_grep_ex(
+        Pointer<Void>.fromAddress(handle),
+        patternList.join('\n').toNativeChar(arena, 'patterns'),
+        options.constraints.toNativeChar(arena, 'constraints'),
+        options.maxFileSizeBytes,
+        options.maxMatchesPerFile,
+        options.smartCase,
+        options.fileOffset,
+        options.pageLimit,
+        options.timeBudgetMs,
+        options.enforceTimeBudget,
+        options.beforeContext,
+        options.afterContext,
+        options.classifyDefinitions,
+      ),
+      operationName: 'FileFinder.multiGrep',
+      decodeSuccess: (envelope) {
+        final result = envelope.handle.cast<FffGrepResult>();
+        if (result == nullptr) {
+          throw StateError('FFF returned a null multi-grep result');
+        }
+        try {
+          return _copyGrepResult(result);
+        } finally {
+          fff_free_grep_result(result);
+        }
+      },
+    );
+  });
+}
+
+List<String> _validatedPatterns(Iterable<String> patterns) {
+  final values = patterns.toList(growable: false);
+  if (values.isEmpty) {
+    throw ArgumentError.value(patterns, 'patterns', 'Must not be empty');
+  }
+  for (final pattern in values) {
+    if (pattern.isEmpty) {
+      throw ArgumentError.value(
+        pattern,
+        'patterns',
+        'Patterns must not be empty',
+      );
+    }
+    if (pattern.contains('\n')) {
+      throw ArgumentError.value(
+        pattern,
+        'patterns',
+        'Patterns must not contain a newline',
+      );
+    }
+    if (pattern.contains('\u0000')) {
+      throw ArgumentError.value(
+        pattern,
+        'patterns',
+        'Must not contain a NUL byte',
+      );
+    }
+  }
+  return values;
+}
+
 void _checkUint32(int value, String name) {
   if (value < 0 || value > 0xffffffff) {
     throw RangeError.range(value, 0, 0xffffffff, name);
