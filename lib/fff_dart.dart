@@ -11,6 +11,7 @@ export 'src/impl/api.dart'
         FffScanProgress,
         FileFinder,
         FileItem,
+        GlobOptions,
         SearchLineLocation,
         SearchLocation,
         SearchOptions,

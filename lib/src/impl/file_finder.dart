@@ -203,6 +203,40 @@ final class FileFinder._(var int _handle) implements Finalizable {
     );
   }
 
+  /// Filters indexed files with one glob pattern, without parsing a query.
+  ///
+  /// The pattern is matched against each file's root-relative path. FFF's
+  /// glob backend determines the supported pattern details. Matching files
+  /// use FFF's frecency-mode ranking, including Git status and recency boosts
+  /// and the optional current-file penalty; equal scores are ordered by
+  /// modification time, with remaining ties unspecified. [options] forwards
+  /// the worker-thread setting and controls current-file ranking and the
+  /// result range. FFF uses a zero [GlobOptions.maxThreads] as its automatic
+  /// default sentinel. A zero [GlobOptions.pageSize] uses FFF's default limit
+  /// of 100. [GlobOptions.offset] is the number of matches to skip.
+  ///
+  /// Results have no query location. The returned items and scores are
+  /// detached, unmodifiable values and remain usable after this finder is
+  /// disposed. Empty or NUL-containing patterns and NUL-containing current
+  /// files throw [ArgumentError]. Malformed glob syntax produces no matches.
+  /// Options outside the native integer ranges throw [RangeError]. Native
+  /// failures throw [FffException]. This synchronous operation may block
+  /// while FFF searches; wait for [waitForScan] when results should include
+  /// every indexed file.
+  SearchResult glob(
+    String pattern, {
+    GlobOptions options = const GlobOptions(),
+  }) {
+    return glob_bindings.glob(
+      _liveHandle,
+      pattern,
+      currentFile: options.currentFile,
+      maxThreads: options.maxThreads,
+      offset: options.offset,
+      pageSize: options.pageSize,
+    );
+  }
+
   /// Searches indexed directories by fuzzy path and directory-name matching.
   ///
   /// Call [waitForScan] first when results should include every indexed

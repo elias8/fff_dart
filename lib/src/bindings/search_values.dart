@@ -28,6 +28,27 @@ SearchLocation? copySearchLocation(FffLocation location) =>
       ),
     };
 
+SearchResult copySearchResult(FffSearchResult result) {
+  final count = result.count;
+  if (count > 0 && (result.items == nullptr || result.scores == nullptr)) {
+    throw StateError('FFF returned incomplete search result arrays');
+  }
+
+  final items = <FileItem>[];
+  final scores = <SearchScore>[];
+  for (var index = 0; index < count; index++) {
+    items.add(_copyFileItem(result.items[index]));
+    scores.add(copySearchScore(result.scores[index]));
+  }
+  return SearchResult(
+    items,
+    scores,
+    totalMatched: result.total_matched,
+    totalFiles: result.total_files,
+    location: copySearchLocation(result.location),
+  );
+}
+
 SearchScore copySearchScore(FffScore score) {
   final matchType = score.match_type;
   if (matchType == nullptr) {
@@ -47,3 +68,15 @@ SearchScore copySearchScore(FffScore score) {
     matchType: matchType.toDartString(),
   );
 }
+
+FileItem _copyFileItem(FffFileItem item) => FileItem(
+  relativePath: copyRequiredSearchString(item.relative_path, 'relative path'),
+  fileName: copyRequiredSearchString(item.file_name, 'file name'),
+  gitStatus: copyRequiredSearchString(item.git_status, 'Git status'),
+  size: item.size,
+  modified: item.modified,
+  accessFrecencyScore: item.access_frecency_score,
+  modificationFrecencyScore: item.modification_frecency_score,
+  totalFrecencyScore: item.total_frecency_score,
+  isBinary: item.is_binary,
+);

@@ -107,7 +107,22 @@ final class const SearchOptions({
   final int pageSize = 0,
 });
 
-/// Detached results from a fuzzy file search.
+/// Options for [FileFinder.glob].
+final class const GlobOptions({
+  /// Worker-thread setting forwarded to FFF. Zero is FFF's default sentinel.
+  final int maxThreads = 0,
+
+  /// Current file path to deprioritize, or null to skip this adjustment.
+  final String? currentFile,
+
+  /// Number of matching files to skip. Zero starts at the first result.
+  final int offset = 0,
+
+  /// Maximum number of results. Zero uses FFF's default of 100.
+  final int pageSize = 0,
+});
+
+/// Detached results from a file search.
 final class SearchResult(
   List<FileItem> items,
   List<SearchScore> scores, {
@@ -166,7 +181,7 @@ final class MixedSearchResult(
   }
 }
 
-/// Score components for a fuzzy search result.
+/// Score components returned by file, directory, and mixed searches.
 final class const SearchScore({
   /// Total combined score.
   required final int total,

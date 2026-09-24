@@ -8,39 +8,36 @@ import 'types/result.dart';
 import 'types/search.dart';
 import 'types/string.dart';
 
-SearchResult search(
+SearchResult glob(
   int handle,
-  String query, {
+  String pattern, {
   required String? currentFile,
   required int maxThreads,
   required int offset,
   required int pageSize,
-  required int comboBoostMultiplier,
-  required int minComboCount,
 }) {
+  if (pattern.isEmpty) {
+    throw ArgumentError.value(pattern, 'pattern', 'Must not be empty');
+  }
   _checkUint32(maxThreads, 'maxThreads');
   _checkUint32(offset, 'offset');
   _checkUint32(pageSize, 'pageSize');
-  _checkInt32(comboBoostMultiplier, 'comboBoostMultiplier');
-  _checkUint32(minComboCount, 'minComboCount');
 
   return using((arena) {
     return decodeFffResult(
-      () => fff_search(
+      () => fff_glob(
         Pointer<Void>.fromAddress(handle),
-        query.toNativeChar(arena, 'query'),
+        pattern.toNativeChar(arena, 'pattern'),
         currentFile.toNativeChar(arena, 'currentFile'),
         maxThreads,
         offset,
         pageSize,
-        comboBoostMultiplier,
-        minComboCount,
       ),
-      operationName: 'FileFinder.searchFile',
+      operationName: 'FileFinder.glob',
       decodeSuccess: (envelope) {
         final result = envelope.handle.cast<FffSearchResult>();
         if (result == nullptr) {
-          throw StateError('FFF returned a null search result');
+          throw StateError('FFF returned a null glob result');
         }
         try {
           return copySearchResult(result.ref);
@@ -50,12 +47,6 @@ SearchResult search(
       },
     );
   });
-}
-
-void _checkInt32(int value, String name) {
-  if (value < -0x80000000 || value > 0x7fffffff) {
-    throw RangeError.range(value, -0x80000000, 0x7fffffff, name);
-  }
 }
 
 void _checkUint32(int value, String name) {

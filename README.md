@@ -1,6 +1,6 @@
 # fff_dart
 
-A single pure Dart package for the [FFF](https://github.com/dmtrKovalenko/fff) C ABI. The API covers index lifecycle and scan state, plus fuzzy file, directory, and mixed search.
+A single pure Dart package for the [FFF](https://github.com/dmtrKovalenko/fff) C ABI. The API covers index lifecycle and scan state, plus fuzzy file, directory, and mixed search and glob filtering.
 
 ## Open an index
 
@@ -28,6 +28,11 @@ void main() {
       final directories = index.searchDirectories('lib');
       for (final directory in directories.items) {
         print(directory.relativePath);
+      }
+
+      final dartFiles = index.glob('**/*.dart');
+      for (final item in dartFiles.items) {
+        print(item.relativePath);
       }
 
       final mixed = index.searchMixed('components');

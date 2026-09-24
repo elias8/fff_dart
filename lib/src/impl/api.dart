@@ -7,6 +7,7 @@ import 'dart:ffi' show Finalizable;
 import 'dart:io' show FileSystemEntity;
 
 import '../bindings/file_finder.dart' as bindings;
+import '../bindings/glob.dart' as glob_bindings;
 import '../bindings/search.dart' as search_bindings;
 import '../bindings/search_directories.dart' as directory_search_bindings;
 import '../bindings/search_mixed.dart' as mixed_search_bindings;
@@ -17,6 +18,7 @@ import '../bindings/types/search.dart'
         DirectorySearchOptions,
         DirectorySearchResult,
         FileItem,
+        GlobOptions,
         MixedSearchResult,
         SearchOptions,
         SearchResult;
@@ -28,6 +30,7 @@ export '../bindings/types/search.dart'
         DirectorySearchOptions,
         DirectorySearchResult,
         FileItem,
+        GlobOptions,
         MixedItem,
         MixedSearchResult,
         SearchOptions,
