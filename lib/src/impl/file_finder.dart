@@ -233,6 +233,44 @@ final class FileFinder._(var int _handle) implements Finalizable {
     );
   }
 
+  /// Searches indexed files and directories together by fuzzy match score.
+  ///
+  /// Wait for the initial scan with [waitForScan] when results must include
+  /// every indexed entry. This synchronous call may block while FFF searches.
+  /// Results are ordered by descending total score; the order of equal-score
+  /// entries is unspecified. A query ending in `/` (or `\\` on Windows)
+  /// searches directories only.
+  /// [options] controls worker threads, current-file scoring, combo boosts,
+  /// and the result range. [SearchOptions.offset] counts mixed results to
+  /// skip, and a zero [SearchOptions.pageSize] uses FFF's default limit of
+  /// 100. FFF selects defaults when [SearchOptions.maxThreads],
+  /// [SearchOptions.comboBoostMultiplier], or
+  /// [SearchOptions.minComboCount] are zero.
+  ///
+  /// The returned files, directories, scores, and optional query location are
+  /// detached values and remain usable after this finder is disposed. Items
+  /// can be exhaustively matched as [FileItem] or [DirectoryItem]. The item
+  /// and score lists are unmodifiable and aligned by index.
+  /// [MixedSearchResult.totalMatched] counts matches before pagination. A
+  /// NUL-containing query or current file
+  /// throws [ArgumentError]. Options outside the native integer ranges throw
+  /// [RangeError]. A native failure throws [FffException].
+  MixedSearchResult searchMixed(
+    String query, {
+    SearchOptions options = const SearchOptions(),
+  }) {
+    return mixed_search_bindings.searchMixed(
+      _liveHandle,
+      query,
+      currentFile: options.currentFile,
+      maxThreads: options.maxThreads,
+      offset: options.offset,
+      pageSize: options.pageSize,
+      comboBoostMultiplier: options.comboBoostMultiplier,
+      minComboCount: options.minComboCount,
+    );
+  }
+
   /// Schedules a full filesystem rescan and returns before it completes.
   ///
   /// FFF can queue this request behind ongoing work. [waitForScan] observes

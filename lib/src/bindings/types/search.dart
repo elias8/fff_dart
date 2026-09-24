@@ -1,6 +1,9 @@
 import 'search_location.dart';
 
-/// A directory returned by a fuzzy directory search.
+/// A file or directory returned by mixed fuzzy search.
+sealed class const MixedItem();
+
+/// A directory returned by a fuzzy directory or mixed search.
 final class const DirectoryItem({
   /// Path relative to the indexed directory, with a trailing slash.
   required final String relativePath,
@@ -10,7 +13,7 @@ final class const DirectoryItem({
 
   /// Highest access-frecency score among this directory's direct child files.
   required final int maxAccessFrecencyScore,
-});
+}) extends MixedItem;
 
 /// Options for `FileFinder.searchDirectories`.
 final class const DirectorySearchOptions({
@@ -53,7 +56,7 @@ final class DirectorySearchResult(
   }
 }
 
-/// A detached file returned by fuzzy search.
+/// A detached file returned by file or mixed fuzzy search.
 final class const FileItem({
   /// Path relative to the indexed directory.
   required final String relativePath,
@@ -81,9 +84,9 @@ final class const FileItem({
 
   /// Whether FFF detected the file as binary.
   required final bool isBinary,
-});
+}) extends MixedItem;
 
-/// Options for `FileFinder.searchFile`.
+/// Options for [FileFinder.searchFile] and [FileFinder.searchMixed].
 final class const SearchOptions({
   /// Maximum worker threads. Zero lets FFF choose the available parallelism.
   final int maxThreads = 0,
@@ -122,6 +125,42 @@ final class SearchResult(
     if (items.length != scores.length) {
       throw ArgumentError(
         'Every search item must have one corresponding score',
+      );
+    }
+  }
+}
+
+/// Detached files and directories returned in descending total-score order.
+///
+/// [items] is a sealed union of [FileItem] and [DirectoryItem], so a switch
+/// over its values is exhaustive. Equal-score item ordering is unspecified.
+final class MixedSearchResult(
+  List<MixedItem> items,
+  List<SearchScore> scores, {
+
+  /// Number of matches before the result range; slash-terminated queries count
+  /// matching directories only.
+  required final int totalMatched,
+
+  /// Number of files in the index.
+  required final int totalFiles,
+
+  /// Number of indexed directories, including the base directory.
+  required final int totalDirectories,
+
+  /// Location parsed from the query, if present.
+  required final SearchLocation? location,
+}) {
+  /// Matched files and directories in score order.
+  final List<MixedItem> items = List.unmodifiable(items);
+
+  /// Score details corresponding by index to [items].
+  final List<SearchScore> scores = List.unmodifiable(scores);
+
+  this {
+    if (items.length != scores.length) {
+      throw ArgumentError(
+        'Every mixed search item must have one corresponding score',
       );
     }
   }

@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import '../ffi/fff.g.dart';
 import 'types/search.dart';
+import 'types/search_location.dart';
 import 'types/string.dart';
 
 String copyRequiredSearchString(Pointer<Char> pointer, String field) {
@@ -10,6 +11,22 @@ String copyRequiredSearchString(Pointer<Char> pointer, String field) {
   }
   return pointer.toDartString();
 }
+
+SearchLocation? copySearchLocation(FffLocation location) =>
+    switch (location.tag) {
+      0 => null,
+      1 => SearchLineLocation(location.line),
+      2 => SearchPositionLocation(location.line, location.col),
+      3 => SearchRangeLocation(
+        startLine: location.line,
+        startColumn: location.col,
+        endLine: location.end_line,
+        endColumn: location.end_col,
+      ),
+      final tag => throw StateError(
+        'FFF returned an unknown location tag: $tag',
+      ),
+    };
 
 SearchScore copySearchScore(FffScore score) {
   final matchType = score.match_type;
