@@ -1,6 +1,6 @@
 # fff_dart
 
-A single pure Dart package for the [FFF](https://github.com/dmtrKovalenko/fff) C ABI. The API covers index lifecycle and scan state, plus fuzzy file, directory, and mixed search and glob filtering.
+A single pure Dart package for the [FFF](https://github.com/dmtrKovalenko/fff) C ABI. The API covers index lifecycle and scan state, fuzzy file, directory, and mixed search, glob filtering, and content grep.
 
 ## Open an index
 
@@ -35,6 +35,14 @@ void main() {
         print(item.relativePath);
       }
 
+      final matches = index.grep(
+        'FileFinder',
+        options: const GrepOptions(mode: .regex, beforeContext: 1),
+      );
+      for (final match in matches.matches) {
+        print('${match.relativePath}:${match.lineNumber}: ${match.lineContent}');
+      }
+
       final mixed = index.searchMixed('components');
       for (final item in mixed.items) {
         switch (item) {
@@ -54,6 +62,4 @@ void main() {
 
 `FileFinder.open` starts native background work. Calls are synchronous and waits or disposal may block the calling isolate. Dispose the index when finished; later operations throw `StateError`. Native failures throw `FffException`.
 
-## Native build
-
-The build hook compiles the pinned FFF `v0.11.0` C library for Linux, macOS, and Windows host targets. Building requires Dart, Git, Rust/Cargo, a working native C toolchain, and network access to fetch the FFF source and Cargo dependencies. The hook bundles the resulting library with the consuming app. The desktop CI matrix checks each host and a consuming Dart app. Android support awaits verified prebuilt artifacts.
+Content grep supports literal, regex, and fuzzy modes. Its pagination cursor advances through candidate files and should be reused with the same query and options. Regex errors fall back to literal matching and are returned in `GrepResult.regexFallbackError`. Match columns and highlight ranges use UTF-8 byte offsets. See the API docs for limits, context, and time-budget behavior.

@@ -203,6 +203,50 @@ final class FileFinder._(var int _handle) implements Finalizable {
     );
   }
 
+  /// Searches file contents with literal, regular-expression, or fuzzy
+  /// matching.
+  ///
+  /// Wait for [waitForScan] before searching when results should include every
+  /// indexed file. This synchronous operation may block while FFF searches.
+  /// [GrepOptions.fileOffset] resumes within the filtered candidate-file order;
+  /// pass [GrepResult.nextFileOffset] with the same query and options to
+  /// continue. A zero [GrepOptions.pageLimit] uses FFF's default of 50, and
+  /// the limit may be exceeded to finish the current file. A zero
+  /// [GrepOptions.maxFileSizeBytes] uses 10 MiB; zero
+  /// [GrepOptions.maxMatchesPerFile] allows all matches.
+  ///
+  /// The query is parsed according to [FffOptions.aiMode]. If parsed
+  /// constraints produce no matches, FFF may retry the query as literal text
+  /// while retaining only explicit path constraints. Invalid regular
+  /// expressions fall back to literal matching and populate
+  /// [GrepResult.regexFallbackError]. Regex uses multiline byte matching with
+  /// Unicode mode disabled; `\n` is treated as a newline. Plain-text smart
+  /// case folding is ASCII-only. A constrained no-match retry as literal text
+  /// is not reported separately in [GrepResult].
+  /// [GrepResult.candidateFilesConsumed] counts positions advanced within the
+  /// filtered candidate list, including candidates without matches or with
+  /// read failures; files removed during filtering are not counted. Time
+  /// budgets are best effort, checked periodically, and can be exceeded. For
+  /// plain-text and regex searches,
+  /// [GrepOptions.enforceTimeBudget] applies the budget from the start; when
+  /// false, FFF delays it until more than one match has accumulated, so a
+  /// nonzero budget need not bound zero- or one-match searches. Fuzzy matching
+  /// uses any nonzero budget regardless of that flag. Context is not returned
+  /// in fuzzy mode.
+  ///
+  /// Match columns, highlight spans, and [GrepMatch.lineByteOffset] are source
+  /// byte offsets, not Dart string indices. They align with displayed text
+  /// when the original line is valid UTF-8; invalid bytes become replacement
+  /// characters and can shift displayed positions. Displayed and context lines
+  /// may be truncated to 512 bytes. Fuzzy scores are null outside fuzzy mode.
+  /// Matches and all nested lists are detached, unmodifiable values that
+  /// remain usable after this finder is disposed. Definition classification is
+  /// heuristic and is available in source builds. Empty queries are allowed;
+  /// a NUL-containing query throws [ArgumentError]. Values outside native
+  /// integer ranges throw [RangeError]. Native failures throw [FffException].
+  GrepResult grep(String query, {GrepOptions options = const GrepOptions()}) =>
+      grep_bindings.liveGrepEx(_liveHandle, query, options: options);
+
   /// Filters indexed files with one glob pattern, without parsing a query.
   ///
   /// The pattern is matched against each file's root-relative path. FFF's

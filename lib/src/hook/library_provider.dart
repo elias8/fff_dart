@@ -157,7 +157,7 @@ final class SourceLibraryProvider(super.input, super.output)
       'fff-c',
       '--no-default-features',
       '--features',
-      'zlob',
+      'zlob,fff/definitions',
     ], workingDirectory: source.path);
     if (result.exitCode != 0) {
       throw StateError(
