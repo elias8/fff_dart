@@ -424,6 +424,27 @@ final class FileFinder._(var int _handle) implements Finalizable {
   String? getHistoricalQuery(int offset) =>
       bindings.getHistoricalQuery(_liveHandle, offset);
 
+  /// Checks the health of this finder and Git repository discovery at
+  /// [testPath].
+  ///
+  /// Omitted or empty [testPath] checks the process current directory. Git
+  /// discovery does not require a valid repository; [HealthCheck.git] reports
+  /// whether one was found. Instance health fields are present even when their
+  /// services are not initialized. Optional nested fields may be absent.
+  /// Results are copied into immutable Dart values. A NUL-containing path
+  /// throws [ArgumentError]; native failures throw [FffException].
+  HealthCheck healthCheck({String? testPath}) =>
+      health_check_bindings.healthCheck(_liveHandle, testPath);
+
+  /// Checks library and Git health without an initialized [FileFinder].
+  ///
+  /// The returned health model still contains file-picker, frecency, and query
+  /// tracker sections; their `initialized` fields are false. Omitted or empty
+  /// [testPath] checks the process current directory. A NUL-containing path
+  /// throws [ArgumentError]; native failures throw [FffException].
+  static HealthCheck healthCheckStatic({String? testPath}) =>
+      health_check_bindings.healthCheck(null, testPath);
+
   /// Blocks until the filesystem scan ends or [timeout] elapses.
   ///
   /// Returns true when the current scan signal clears, false on timeout. A

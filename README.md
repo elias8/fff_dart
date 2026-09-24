@@ -36,6 +36,8 @@ void main() {
       }
       final refreshedGitEntries = index.refreshGitStatus();
       print('Git status entry count: $refreshedGitEntries');
+      final health = index.healthCheck();
+      print('FFF version: ${health.version}');
 
       final matches = index.grep(
         'FileFinder',

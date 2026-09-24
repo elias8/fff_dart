@@ -3,6 +3,8 @@ library;
 
 export 'src/impl/api.dart'
     show
+        DatabaseHealth,
+        DatabaseHealthDetails,
         DirectoryItem,
         DirectorySearchOptions,
         DirectorySearchResult,
@@ -11,12 +13,15 @@ export 'src/impl/api.dart'
         FffScanProgress,
         FileFinder,
         FileItem,
+        FilePickerHealth,
+        GitHealth,
         GlobOptions,
         GrepMatch,
         GrepMatchRange,
         GrepMode,
         GrepOptions,
         GrepResult,
+        HealthCheck,
         MultiGrepOptions,
         SearchLineLocation,
         SearchLocation,
