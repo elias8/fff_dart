@@ -396,6 +396,15 @@ final class FileFinder._(var int _handle) implements Finalizable {
   /// has finished. Throws [FffException] if FFF cannot schedule the rescan.
   void rescan() => bindings.scanFiles(_liveHandle);
 
+  /// Refreshes Git status and recency data for the indexed directory.
+  ///
+  /// This synchronous operation may block while FFF reads repository status.
+  /// Returns the number of Git status entries returned by FFF. Zero may mean
+  /// there are no entries, no repository, an unavailable status read, or a
+  /// concurrent index change; it does not confirm a successful status read.
+  /// Native failures throw [FffException].
+  int refreshGitStatus() => bindings.refreshGitStatus(_liveHandle);
+
   /// Blocks until the filesystem scan ends or [timeout] elapses.
   ///
   /// Returns true when the current scan signal clears, false on timeout. A

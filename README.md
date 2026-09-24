@@ -34,6 +34,8 @@ void main() {
       for (final item in dartFiles.items) {
         print(item.relativePath);
       }
+      final refreshedGitEntries = index.refreshGitStatus();
+      print('Git status entry count: $refreshedGitEntries');
 
       final matches = index.grep(
         'FileFinder',

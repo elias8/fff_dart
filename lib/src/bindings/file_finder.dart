@@ -133,6 +133,20 @@ void scanFiles(int handle) {
   );
 }
 
+int refreshGitStatus(int handle) {
+  return decodeFffResult(
+    () => fff_refresh_git_status(Pointer<Void>.fromAddress(handle)),
+    operationName: 'FileFinder.refreshGitStatus',
+    decodeSuccess: (envelope) {
+      final count = envelope.int_value;
+      if (count < 0) {
+        throw StateError('FFF returned a negative Git status count: $count');
+      }
+      return count;
+    },
+  );
+}
+
 bool _decodeWaitResult(FffResult result) => switch (result.int_value) {
   0 => false,
   1 => true,
