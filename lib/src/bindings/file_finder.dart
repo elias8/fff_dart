@@ -203,7 +203,7 @@ String? getHistoricalQuery(int handle, int offset) {
   );
 }
 
-bool _decodeWaitResult(FffResult result) => switch (result.int_value) {
+bool _decodeWaitResult(FffResultView result) => switch (result.int_value) {
   0 => false,
   1 => true,
   final value => throw StateError(
