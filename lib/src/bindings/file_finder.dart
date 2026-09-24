@@ -147,6 +147,46 @@ int refreshGitStatus(int handle) {
   );
 }
 
+bool trackQuery(int handle, String query, String filePath) {
+  return using((arena) {
+    return decodeFffResult(
+      () => fff_track_query(
+        Pointer<Void>.fromAddress(handle),
+        query.toNativeChar(arena, 'query'),
+        filePath.toNativeChar(arena, 'filePath'),
+      ),
+      operationName: 'FileFinder.trackQuery',
+      decodeSuccess: (envelope) => switch (envelope.int_value) {
+        0 => false,
+        1 => true,
+        final value => throw StateError(
+          'FFF returned an invalid query tracking value: $value',
+        ),
+      },
+    );
+  });
+}
+
+String? getHistoricalQuery(int handle, int offset) {
+  if (offset < 0 || offset > 0x7fffffffffffffff) {
+    throw RangeError.range(offset, 0, 0x7fffffffffffffff, 'offset');
+  }
+
+  return decodeFffResult(
+    () => fff_get_historical_query(Pointer<Void>.fromAddress(handle), offset),
+    operationName: 'FileFinder.getHistoricalQuery',
+    decodeSuccess: (envelope) {
+      final query = envelope.handle.cast<Char>();
+      if (query == nullptr) return null;
+      try {
+        return query.toDartString();
+      } finally {
+        fff_free_string(query);
+      }
+    },
+  );
+}
+
 bool _decodeWaitResult(FffResult result) => switch (result.int_value) {
   0 => false,
   1 => true,

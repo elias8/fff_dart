@@ -405,6 +405,25 @@ final class FileFinder._(var int _handle) implements Finalizable {
   /// Native failures throw [FffException].
   int refreshGitStatus() => bindings.refreshGitStatus(_liveHandle);
 
+  /// Records that [filePath] was selected for [query] in query history.
+  ///
+  /// Configure [FffOptions.historyDbPath] when opening this finder to persist
+  /// history. Returns FFF's tracking flag. When history storage is not
+  /// configured, FFF can return true without persisting a record; internal
+  /// lock or picker failures can return false as a successful native result.
+  /// Both strings must be NUL-free. FFF canonicalizes [filePath], so it must
+  /// identify an existing path. Native failures throw [FffException].
+  bool trackQuery(String query, String filePath) =>
+      bindings.trackQuery(_liveHandle, query, filePath);
+
+  /// Gets a recorded query by recency offset, where zero is the newest query.
+  ///
+  /// Returns null when the offset is not recorded or history is unavailable.
+  /// [offset] must fit the native unsigned 64-bit range supported by Dart.
+  /// Native failures throw [FffException].
+  String? getHistoricalQuery(int offset) =>
+      bindings.getHistoricalQuery(_liveHandle, offset);
+
   /// Blocks until the filesystem scan ends or [timeout] elapses.
   ///
   /// Returns true when the current scan signal clears, false on timeout. A
