@@ -147,6 +147,22 @@ int refreshGitStatus(int handle) {
   );
 }
 
+void restartIndex(int handle, String newPath) {
+  if (newPath.isEmpty) {
+    throw ArgumentError.value(newPath, 'newPath', 'Must not be empty');
+  }
+  using((arena) {
+    decodeFffResult<void>(
+      () => fff_restart_index(
+        Pointer<Void>.fromAddress(handle),
+        newPath.toNativeChar(arena, 'newPath'),
+      ),
+      operationName: 'FileFinder.restartIndex',
+      decodeSuccess: ignoreResult,
+    );
+  });
+}
+
 bool trackQuery(int handle, String query, String filePath) {
   return using((arena) {
     return decodeFffResult(

@@ -396,6 +396,28 @@ final class FileFinder._(var int _handle) implements Finalizable {
   /// has finished. Throws [FffException] if FFF cannot schedule the rescan.
   void rescan() => bindings.scanFiles(_liveHandle);
 
+  /// Restarts indexing from [newPath], replacing this finder's current root.
+  ///
+  /// The new root must be a nonempty path to an existing directory. FFF keeps
+  /// the watch, content-indexing, mode, symlink, and filesystem-scanning
+  /// settings and shared frecency state. Cache size limits return to automatic
+  /// sizing. FFF then starts scanning the new root. This call returns after
+  /// FFF accepts the new picker; use [waitForScan] to observe the active scan.
+  /// Empty, NUL-containing, and existing non-directory paths throw
+  /// [ArgumentError]. Missing paths and native initialization failures throw
+  /// [FffException].
+  void restartIndex(String newPath) {
+    final handle = _liveHandle;
+    if (newPath.isEmpty) {
+      throw ArgumentError.value(newPath, 'newPath', 'Must be a directory path');
+    }
+    final type = FileSystemEntity.typeSync(newPath);
+    if (type != .directory && type != .notFound) {
+      throw ArgumentError.value(newPath, 'newPath', 'Must be a directory');
+    }
+    bindings.restartIndex(handle, newPath);
+  }
+
   /// Refreshes Git status and recency data for the indexed directory.
   ///
   /// This synchronous operation may block while FFF reads repository status.
