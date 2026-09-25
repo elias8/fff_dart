@@ -1,6 +1,6 @@
 name: fff_dart
 description: Dart FFI bindings for FFF file indexing, fuzzy search, content grep, and filesystem watching.
-version: 0.0.1
+version: 0.1.0
 homepage: https://github.com/elias8/fff_dart
 repository: https://github.com/elias8/fff_dart
 issue_tracker: https://github.com/elias8/fff_dart/issues

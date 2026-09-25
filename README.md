@@ -45,7 +45,7 @@ Add the package to your application:
 
 ```yaml
 dependencies:
-  fff_dart: ^0.0.1
+  fff_dart: ^0.1.0
 ```
 
 ## Quick start
